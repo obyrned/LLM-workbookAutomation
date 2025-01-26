@@ -38,15 +38,17 @@ def get_vocab_words(text):
     try:
         response = requests.post(OLLAMA_URL, json=payload)
         response.raise_for_status()
-        raw_response = response.json().get("response", "[]")
+        raw_response = response.json().get("response", "{}")
         st.write("### Debug: Raw Model Response")
         st.code(raw_response)
 
-        # Parse and validate JSON response
+        # Parse and normalize JSON response
         vocab_output = json.loads(raw_response)
 
-        if not isinstance(vocab_output, list):
-            st.error("The response is not a list. Please check the model output.")
+        if isinstance(vocab_output, dict):  # Normalize a single dictionary to a list
+            vocab_output = [vocab_output]
+        elif not isinstance(vocab_output, list):  # If not a list, raise an error
+            st.error("The response is not a valid JSON list. Please check the model output.")
             return None
 
         valid_entries = []
