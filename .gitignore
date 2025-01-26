@@ -2,3 +2,6 @@
 data_ignore/
 DS_Store
 vocab_workbook_old.py
+
+data/*
+!data/.gitkeep
