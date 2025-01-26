@@ -1,0 +1,76 @@
+{
+  "mc_questions": [
+    {
+      "question": "Who was Gregory's teacher?",
+      "options": {
+        "a": "Miss Perry",
+        "b": "Mr. Thompson",
+        "c": "Mrs. Davis",
+        "d": "Uncle Max"
+      },
+      "correct": "a"
+    },
+    {
+      "question": "What did Gregory do to the gate?",
+      "options": {
+        "a": "He opened it",
+        "b": "He broke it",
+        "c": "He repaired it",
+        "d": "He left it closed"
+      },
+      "correct": "a"
+    },
+    {
+      "question": "What did Gregory find under the bricks?",
+      "options": {
+        "a": "Chalk boxes",
+        "b": "Paint",
+        "c": "Old photographs",
+        "d": "A notebook"
+      },
+      "correct": "a"
+    },
+    {
+      "question": "Why was Gregory angry at his uncle?",
+      "options": {
+        "a": "His uncle took over the room",
+        "b": "Uncle Max's posters were on Gregory's wall",
+        "c": "Gregory thought his pictures were hidden",
+        "d": "He didn't like Uncle Max's guitar playing"
+      },
+      "correct": "c"
+    },
+    {
+      "question": "Where did Mother find out about the burned building?",
+      "options": {
+        "a": "The teacher told her",
+        "b": "A neighbor told her",
+        "c": "She read it in a book",
+        "d": "She asked Gregory"
+      },
+      "correct": "b"
+    }
+  ],
+  "tf_questions": [
+    {
+      "question": "Gregory liked Miss Perry.",
+      "correct": "True"
+    },
+    {
+      "question": "Gregory cleaned up the burned building.",
+      "correct": "True"
+    },
+    {
+      "question": "Gregory felt angry after his uncle turned off the TV.",
+      "correct": "False"
+    },
+    {
+      "question": "Gregory's pictures were good according to Miss Perry.",
+      "correct": "True"
+    },
+    {
+      "question": "The burned building was a factory before it caught fire.",
+      "correct": "True"
+    }
+  ]
+}

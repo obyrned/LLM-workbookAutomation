@@ -1,0 +1,4 @@
+# This is an empty .gitignore file
+data_ignore/
+DS_Store
+vocab_workbook_old.py

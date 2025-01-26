@@ -1,0 +1,76 @@
+{
+  "mc_questions": [
+    {
+      "question": "What did Gandalf do to the door?",
+      "options": {
+        "A": "He wrote a message on it.",
+        "B": "He poked it with his staff.",
+        "C": "He knocked it down.",
+        "D": "He left it alone."
+      },
+      "correct": "A"
+    },
+    {
+      "question": "Who arrives at Bilbo's door first after Gandalf?",
+      "options": {
+        "A": "Gandalf",
+        "B": "Balin",
+        "C": "Dwalin",
+        "D": "Fili"
+      },
+      "correct": "A"
+    },
+    {
+      "question": "Which of the following is NOT a dwarven instrument mentioned in the text?",
+      "options": {
+        "A": "Pipe",
+        "B": "Flute",
+        "C": "Clarinet",
+        "D": "Harp"
+      },
+      "correct": "C"
+    },
+    {
+      "question": "What does Thorin say about Bilbo after he expresses confusion?",
+      "options": {
+        "A": "He calls him a liar",
+        "B": "He says he should be more confident",
+        "C": "He teases him for being confused",
+        "D": "He offers to help him find his way"
+      },
+      "correct": "C"
+    },
+    {
+      "question": "Which of the following is NOT a trait displayed by Bilbo in this text?",
+      "options": {
+        "A": "Bravery",
+        "B": "Complacency",
+        "C": "Generosity",
+        "D": "Self-pity"
+      },
+      "correct": "B"
+    }
+  ],
+  "tf_questions": [
+    {
+      "question": "The door remained unchanged after Gandalf visited.",
+      "correct": "False"
+    },
+    {
+      "question": "Bilbo likes visitors but prefers to know them before they arrive.",
+      "correct": "True"
+    },
+    {
+      "question": "The number of dwarves that arrived is five.",
+      "correct": "False"
+    },
+    {
+      "question": "Thorin Oakenshield was not happy about falling on Bilbo's mat.",
+      "correct": "True"
+    },
+    {
+      "question": "The dwarves used their instruments to celebrate after the meal.",
+      "correct": "True"
+    }
+  ]
+}

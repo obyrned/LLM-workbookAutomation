@@ -1,0 +1,19 @@
+[
+  {
+    "word": "hole",
+    "quote": [
+      {
+        "sentence_before": "In a hole in the ground there lived a hobbit.",
+        "sentence_after": "It was a hobbit-hole, and that means comfort."
+      }
+    ]
+  },
+  {
+    "word": "adventures",
+    "quote": [
+      "Before you go, Bilbo says that he doesn't want any adventures.",
+      "Then Gandalf says he has no time to blow smoke-rings because he's looking for someone to share an adventure.",
+      "Gandalf later tells Bilbo about his past as a wizard involved in many adventures."
+    ]
+  }
+]

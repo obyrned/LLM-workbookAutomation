@@ -1,0 +1,20 @@
+Vocabulary words extracted from L1-ch0X-TheHobbit.txt
+---------------------------------------------------
+1. WORD: adventures
+   QUOTE: [{'sentence_before': '...to get rid of me, and that it won’t be good till I move off.', 'sentence_containing_word': 'I don\'t think I know your name"', 'sentence_after': "‘Gandalf, Gandalf! Good gracious me!'"}]
+---------------------------------------------------
+2. WORD: Excuse
+   QUOTE: [{'sentence_before': ' ng at the bell.', 'sentence_containing_word': '"Excuse me!" said the hobbit,', 'sentence_after': 'and off he went to the door.'}]
+---------------------------------------------------
+3. WORD: audacious
+   QUOTE: ‘Gandalf, dwarves and Mr. Baggins! We are not together in the house of our friend and fellow conspirator, this most excellent and audacious hobbit-may the hair on his toes never fall out! all praise to his wine and ale!-’ He paused for breath and for a polite remark from the hob-bit, but the compliments were quite lost on-poor Bilbo Baggins, who was wagging his mouth in protest at being called audacious and worst of all fellow conspirator, though no noise came out, he was so flummoxed. So Thorin went on:‘We are met to discuss our plans, our ways, means, policy and devices. We shall soon before the break of day start on our long journey, a journey from which some of us, or perhaps all of us (except our friend and counsellor, the ingenious wizard Gandalf) may never return.’
+---------------------------------------------------
+4. WORD: Baggins
+   QUOTE: Many a time afterwards the Baggins part regretted what he did now, and he said to himself: “Bilbo, you were a fool; you walked right in and put your foot in it.”
+---------------------------------------------------
+5. WORD: burglary
+   QUOTE: ['That is why I settled on **burgl**ar**, especially when I remembered the existence of a Side-door.', 'And here is our little Bilbo Baggins, the burglar, the chosen and selected burglar.', '‘Very well then,’ said Thorin, ‘supposing the burglar-expert gives us some ideas or suggestions.’']
+---------------------------------------------------
+6. WORD: re
+   QUOTE: re he could step aside. That put him out of the battle for a bit.
+---------------------------------------------------

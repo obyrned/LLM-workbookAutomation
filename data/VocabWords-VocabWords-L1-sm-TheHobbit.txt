@@ -1,0 +1,17 @@
+Vocabulary words extracted from VocabWords-L1-sm-TheHobbit.txt
+---------------------------------------------------
+1. WORD: hole
+   QUOTE: ['In a hole in the ground there lived a hobbit.', 'The door opened on to a tube-shaped hall like a tunnel: a very comfortable tunnel without smoke, with panelled walls, and floors tiled and carpeted...', 'The hobbit had a perfectly round door like a porthole...']
+---------------------------------------------------
+2. WORD: Excuse
+   QUOTE: ['So you have got here at last!']
+---------------------------------------------------
+3. WORD: Balin
+   QUOTE: [{'a': 'There stood Balin and Dwalin at the door of the kitchen, and Fili and Kili behind them, and before he could say knife they had whisked the trays...', 'b': '**Balin** and Dwalin at the door of the kitchen, and Fili and Kili behind them, and before he could say knife they had whisked the trays and a couple of small tables into the parlour and set out everything afresh.', 'c': ''}, {'a': '...And still they played on. And suddenly first one and then another began to sing as they played, deep-throated singing...', 'b': 'The dwarves of yore made mighty spells, While hammers fell like ringing bells In places deep, where dark things sleep, In hollow halls beneath the fells.', 'c': ''}]
+---------------------------------------------------
+4. WORD: ines
+   QUOTE: The winds were moaning in the night.
+---------------------------------------------------
+5. WORD: arguing
+   QUOTE: ['It made him howl, I can tell you.', 'But just at that moment William came up behind and popped a sack right over Thorin’s head and down to his toes. And so the fight ended.', 'A nice pickle they were all in now: all neatly tied up in sacks, with three angry trolls (and two with burns and bashes to remember) sitting by them, arguing whether they should roast them slowly, or mince them fine and boil them, or just sit on them one by one and squash them into jelly: and Bilbo up in a bush, with his clothes and his skin torn, not daring to move for fear they should hear him.']
+---------------------------------------------------
