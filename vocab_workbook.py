@@ -33,7 +33,7 @@ def chunk_text(text, max_chars=6000):
 def extract_vocab_from_chunk(chunk):
     """
     Sends one chunk of text to the Ollama model, asking for:
-      - Up to 20 unique vocabulary words
+      - Up to 5 unique vocabulary words
       - Combined quote with highlighted word
     Returns a list of dict entries or None on error.
     """
@@ -43,7 +43,7 @@ You are an advanced text analysis assistant. Return your entire output ONLY as J
 
 Instructions:
 1. You have a chunk of text below.
-2. Identify up to 20 unique and challenging vocabulary words found in this chunk.
+2. Identify up to 5 unique and challenging vocabulary words found in this chunk.
 3. For each word, provide:
    - "word": the exact word as it appears in the text
    - "quote": a single quote combining the preceding sentence, the sentence containing the word (highlighted with **bold**), and the following sentence, if available.
@@ -110,7 +110,7 @@ def generate_vocabulary_workbook(full_text):
     """
     1. Break the full text into smaller chunks.
     2. For each chunk, call `extract_vocab_from_chunk`.
-    3. Accumulate unique words until we have up to 20.
+    3. Accumulate unique words until we have up to 5.
     4. Return the aggregated list of vocabulary entries.
     """
     chunks = chunk_text(full_text, max_chars=6000)
@@ -124,20 +124,20 @@ def generate_vocabulary_workbook(full_text):
             word_lower = entry["word"].lower()
             if word_lower not in aggregated:
                 aggregated[word_lower] = entry
-            if len(aggregated) >= 20:
+            if len(aggregated) >= 5:
                 break
 
-        if len(aggregated) >= 20:
+        if len(aggregated) >= 5:
             break
 
-    return list(aggregated.values())[:20]
+    return list(aggregated.values())[:5]
 
 ###############################################################################
 # 4. Streamlit App
 ###############################################################################
 def main():
     st.title("Vocabulary Workbook Generator")
-    st.write("Upload a text file (lesson/chapters) to extract up to 20 challenging vocabulary words.")
+    st.write("Upload a text file (lesson/chapters) to extract up to 5 challenging vocabulary words.")
 
     uploaded_file = st.file_uploader("Upload a .txt file", type=["txt"])
     if uploaded_file is not None:
