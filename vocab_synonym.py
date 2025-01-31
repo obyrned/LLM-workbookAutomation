@@ -10,13 +10,14 @@ import glob
 # Configuration
 ###############################################################################
 
-# Load API Key (if needed for your environment)
+# Load environment variables from .env
 dotenv_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=dotenv_path)
 
-# Ollama server URL and model name
-OLLAMA_URL = "http://localhost:11434/api/generate"   # Must point to your local Ollama instance
-LLAMA_MODEL = "llama3.2:8b"  # Adjust to match the name/tag of your model
+# Ollama server URLs and model names
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")  # Your local Ollama endpoint
+LLAMA_MODEL = os.getenv("LLAMA_MODEL", "llama3.2:8b")                        # Model for synonyms
+DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-r1:14b")              # Model for definitions
 
 # Directory to save output files
 SAVE_DIR = os.path.abspath("data")
@@ -37,14 +38,12 @@ def get_latest_vocab10():
     return json_files[0] if json_files else None
 
 ###############################################################################
-# 2. Fetch Synonyms Using Llama (Exact 4 synonyms)
+# 2. Fetch Synonyms (Up to 4)
 ###############################################################################
 def fetch_synonyms(word):
     """
     Calls llama3.2:8b via Ollama to get exactly 4 synonyms for the given word.
-
-    - Returns a list of exactly 4 synonyms (or fewer if the response doesn't have 4).
-    - If an error occurs, returns an empty list.
+    Returns a list of up to 4 synonyms.
     """
     prompt = f"""
 Provide exactly four high-quality synonyms for the word '{word}'. 
@@ -54,134 +53,213 @@ Example Output: synonym01, synonym02, synonym03, synonym04
     """
 
     payload = {"model": LLAMA_MODEL, "prompt": prompt, "stream": False}
-
     try:
         response = requests.post(OLLAMA_URL, json=payload)
         response.raise_for_status()
         synonyms_raw = response.json().get("response", "").strip()
-
         # Clean up and split by commas
         synonym_list = [syn.strip() for syn in synonyms_raw.split(",") if syn.strip()]
-
-        # Return only up to 4 synonyms (in case the model returns more)
         return synonym_list[:4]
-
     except requests.exceptions.RequestException as e:
-        print(f"Error contacting Llama API: {e}")
+        st.error(f"Error contacting Llama API for synonyms: {e}")
         return []
 
 ###############################################################################
-# 3. Generate vocab20 JSON with Synonyms
+# 3. Fetch Definitions (Contextual)
 ###############################################################################
-def generate_vocab20(vocab10_path):
+def fetch_definition(word, quote):
     """
-    Reads vocab10_<filename>.json, fetches synonyms for each word using Llama,
-    and saves the new JSON file as vocab20_<filename>.json.
-
-    Also saves a summary TXT file with synonyms for convenient viewing.
+    Calls llama3.2:8b via Ollama to define the word in the context of the quote.
+    Returns a single definition string or an empty string.
     """
-    # Derive new file names from the old file name
-    base_name = os.path.basename(vocab10_path).replace("vocab10_", "").replace(".json", "")
-    vocab20_json_path = os.path.join(SAVE_DIR, f"vocab20_{base_name}.json")
-    vocab20_txt_path = os.path.join(SAVE_DIR, f"vocab20_{base_name}.txt")
+    prompt = f"""
+Define the word '{word}' in the specific context of this quote:
+\"{quote}\"
 
-    if not os.path.exists(vocab10_path):
-        print(f"Error: {vocab10_path} not found!")
-        return None
+- Provide only one concise, plain-text definition.
+- Do not include explanations, disclaimers, or headings.
+- Just the context-appropriate definition.
+    """
 
-    # Load existing vocab10 JSON
-    with open(vocab10_path, "r", encoding="utf-8") as file:
-        vocab_list = json.load(file)
-
-    updated_vocab_list = []
-    
-    # For each word, fetch synonyms via Ollama
-    for entry in vocab_list:
-        word = entry["word"]
-        quote = entry["quote"]
-        synonyms = fetch_synonyms(word)
-
-        updated_vocab_list.append({
-            "word": word,
-            "quote": quote,
-            "synonyms": synonyms
-        })
-
-    # Save vocab20 JSON file
-    with open(vocab20_json_path, "w", encoding="utf-8") as file:
-        json.dump(updated_vocab_list, file, indent=2, ensure_ascii=False)
-
-    # Optionally save a TXT summary
+    payload = {"model": LLAMA_MODEL, "prompt": prompt, "stream": False}
     try:
-        with open(vocab20_txt_path, "w", encoding="utf-8") as tf:
-            tf.write(f"Vocabulary words and synonyms from {base_name}\n")
-            tf.write("---------------------------------------------------\n")
-            for i, entry in enumerate(updated_vocab_list, start=1):
-                tf.write(f"{i}. WORD: {entry['word']}\n")
-                tf.write(f"   QUOTE: {entry['quote']}\n")
-                tf.write(f"   SYNONYMS: {', '.join(entry['synonyms'])}\n")
-                tf.write("---------------------------------------------------\n")
-
-        print(f"✅ Saved: {vocab20_json_path}")
-        print(f"✅ Saved: {vocab20_txt_path}")
-
-    except Exception as e:
-        print(f"Error saving vocab20 TXT: {e}")
-
-    return updated_vocab_list
+        response = requests.post(OLLAMA_URL, json=payload)
+        response.raise_for_status()
+        definition = response.json().get("response", "").strip()
+        return definition
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error contacting DeepSeek API for definitions: {e}")
+        return ""
 
 ###############################################################################
-# 4. Streamlit UI
+# 4. Generate Master Vocab Files
+###############################################################################
+def generate_master_vocab(selected_vocab, base_name):
+    """
+    Generates vocab30_<base_name>.json and vocab30_<base_name>.txt files.
+    """
+    json_path = os.path.join(SAVE_DIR, f"vocab30_{base_name}.json")
+    txt_path  = os.path.join(SAVE_DIR, f"vocab30_{base_name}.txt")
+
+    # Save JSON
+    try:
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(selected_vocab, f, indent=2, ensure_ascii=False)
+        st.success(f"Master JSON file created: `{json_path}`")
+    except Exception as e:
+        st.error(f"Error saving JSON file: {e}")
+
+    # Save TXT summary
+    try:
+        with open(txt_path, "w", encoding="utf-8") as tf:
+            tf.write("Vocabulary Words - Contextual Definitions - Synonyms\n")
+            tf.write("===================================================\n\n")
+            for i, entry in enumerate(selected_vocab, start=1):
+                tf.write(f"{i}. WORD: {entry['word']}\n")
+                if entry.get("quote"):
+                    tf.write(f"   QUOTE: \"{entry['quote']}\"\n")
+                tf.write(f"   DEFINITION: {entry['definition']}\n")
+                synonyms_str = ", ".join(entry['synonyms'])
+                tf.write(f"   SYNONYMS: {synonyms_str}\n")
+                tf.write("---------------------------------------------------\n\n")
+        st.success(f"Master TXT file created: `{txt_path}`")
+    except Exception as e:
+        st.error(f"Error saving TXT file: {e}")
+
+    return json_path, txt_path
+
+###############################################################################
+# 5. Main Streamlit Page
 ###############################################################################
 def main():
-    st.title("Generate Synonyms for Vocabulary Words")
+    st.title("Generate Synonyms and Definitions for Vocabulary Words")
 
-    # Load the latest vocab10 file but DO NOT process automatically
+    # Initialize session state if not already
+    if "vocab_list" not in st.session_state:
+        st.session_state["vocab_list"] = []
+    if "generation_complete" not in st.session_state:
+        st.session_state["generation_complete"] = False
+
+    # 1) Let user pick or upload the latest vocab10 file
     latest_vocab10 = get_latest_vocab10()
     selected_file = None
 
-    # File selection dropdown
-    st.write("### Select a Vocabulary JSON File")
+    st.write("### 1) Select a Vocabulary JSON File")
     if latest_vocab10:
-        st.success(f"Latest file detected: `{os.path.basename(latest_vocab10)}`")
+        st.info(f"Latest file detected: `{os.path.basename(latest_vocab10)}`")
         selected_file = st.selectbox(
             "Choose a JSON file to process:",
             [latest_vocab10] + sorted(glob.glob(os.path.join(SAVE_DIR, "vocab10_*.json")))
         )
 
-    # Or let users upload a JSON file
     uploaded_file = st.file_uploader("Or upload a `.json` file", type=["json"])
-    if uploaded_file:
+    if uploaded_file is not None:
         selected_file = os.path.join(SAVE_DIR, f"uploaded_{uploaded_file.name}")
         with open(selected_file, "wb") as f:
             f.write(uploaded_file.getbuffer())
-        st.success(f"Uploaded file: `{uploaded_file.name}` selected.")
+        st.success(f"Uploaded file: `{uploaded_file.name}` is now selected.")
 
-    # Ensure a file is actually selected
-    if selected_file:
+    # 2) If a file is chosen, load its data
+    if selected_file and os.path.exists(selected_file):
         with open(selected_file, "r", encoding="utf-8") as file:
-            vocab_list = json.load(file)
+            try:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                st.error("The selected JSON file is invalid.")
+                data = []
 
-        if vocab_list:
-            # Display vocabulary words and quotes
-            st.write("### Vocabulary Words & Quotes")
-            vocab_data = [{"Word": entry["word"], "Quote": entry["quote"]} for entry in vocab_list]
-            st.table(vocab_data)
+        # Store the data in session_state if not already done or if user changed the file
+        if data and (not st.session_state["vocab_list"] or st.session_state.get("current_file") != selected_file):
+            # Reset vocab_list if a new file is selected
+            st.session_state["vocab_list"] = [
+                {
+                    "word": item["word"],
+                    "definition": item.get("definition", ""),
+                    "quote": item.get("quote", ""),
+                    "synonyms": []
+                }
+                for item in data
+            ]
+            st.session_state["current_file"] = selected_file
+            st.session_state["generation_complete"] = False
 
-            # Button to fetch synonyms
-            if st.button("Find Synonyms"):
-                with st.spinner("Fetching synonyms..."):
-                    updated_vocab_list = generate_vocab20(selected_file)
+        # 3) Button: Generate Synonyms and Definitions
+        if not st.session_state["generation_complete"]:
+            generate_button = st.button("Generate Synonyms and Definitions for All Words")
+            if generate_button:
+                with st.spinner("Generating synonyms and definitions for each word..."):
+                    for vocab_item in st.session_state["vocab_list"]:
+                        word = vocab_item["word"]
+                        quote = vocab_item.get("quote", "")
+                        # Fetch synonyms
+                        vocab_item["synonyms"] = fetch_synonyms(word)
+                        # Fetch definition
+                        vocab_item["definition"] = fetch_definition(word, quote)
+                st.session_state["generation_complete"] = True
+                st.success("Synonyms and definitions generated successfully!")
 
-                # Display synonyms results
-                if updated_vocab_list:
-                    st.success("Synonyms added and saved!")
-                    st.write("### Vocabulary Words with Synonyms")
-                    for entry in updated_vocab_list:
-                        st.markdown(f"**{entry['word']}**")
-                        st.markdown(f"> {entry['quote']}")
-                        st.write(f"**Synonyms:** {', '.join(entry['synonyms'])}")
-                        st.write("---")
+        # 4) Display the enriched vocabulary list
+        if st.session_state["generation_complete"]:
+            st.write("### 2) Enriched Vocabulary List")
+            for idx, entry in enumerate(st.session_state["vocab_list"], start=1):
+                st.markdown(f"**{idx}. {entry['word']}**")
+                if entry.get("quote"):
+                    st.markdown(f"> *\"{entry['quote']}\"*")
+                st.markdown(f"**Definition:** {entry['definition'] if entry['definition'] else 'N/A'}")
+                st.markdown(f"**Synonyms:** {', '.join(entry['synonyms']) if entry['synonyms'] else 'N/A'}")
+                st.markdown("---")
 
+            # 5) Input for Base Filename
+            st.write("### 3) Specify Base Filename for Master Vocab Files")
+            base_name = st.text_input("Enter a base name (e.g., 'mybook'):", value="mybook")
+
+            # 6) Button to Generate Master Vocab Files
+            generate_master_button = st.button("Generate Master Vocab Files")
+            if generate_master_button:
+                if not base_name.strip():
+                    st.error("Please enter a valid base name.")
+                else:
+                    json_path, txt_path = generate_master_vocab(st.session_state["vocab_list"], base_name)
+                    st.session_state["master_files"] = {
+                        "json": json_path,
+                        "txt": txt_path
+                    }
+
+            # 7) Button to Download Master Vocab Files
+            if "master_files" in st.session_state:
+                st.write("### 4) Download Master Vocab Files")
+                json_path = st.session_state["master_files"]["json"]
+                txt_path  = st.session_state["master_files"]["txt"]
+
+                with open(json_path, "r", encoding="utf-8") as f:
+                    json_content = f.read()
+                with open(txt_path, "r", encoding="utf-8") as f:
+                    txt_content = f.read()
+
+                st.download_button(
+                    label="Download JSON",
+                    data=json_content,
+                    file_name=os.path.basename(json_path),
+                    mime="application/json"
+                )
+                st.download_button(
+                    label="Download TXT",
+                    data=txt_content,
+                    file_name=os.path.basename(txt_path),
+                    mime="text/plain"
+                )
+
+            # 8) Button to Proceed Further (if needed)
+            # Example: If you have another step, you can add a button or link here.
+            # For now, we'll just notify the user that the process is complete.
+            if "master_files" in st.session_state:
+                st.success("Master vocab files generated and ready for download!")
+
+    else:
+        st.warning("No valid JSON file selected or found. Please upload or pick a file.")
+
+###############################################################################
+# Run the app
+###############################################################################
 if __name__ == "__main__":
     main()
