@@ -10,12 +10,13 @@ import glob
 # Configuration
 ###############################################################################
 
-# Load API Key
+# Load API Key (if needed for your environment)
 dotenv_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=dotenv_path)
 
-OLLAMA_URL = "http://localhost:11434/api/generate"  # Ollama server
-LLAMA_MODEL = "llama3"
+# Ollama server URL and model name
+OLLAMA_URL = "http://localhost:11434/api/generate"   # Must point to your local Ollama instance
+LLAMA_MODEL = "llama3.2:8b"  # Adjust to match the name/tag of your model
 
 # Directory to save output files
 SAVE_DIR = os.path.abspath("data")
@@ -28,23 +29,28 @@ def get_latest_vocab10():
     """
     Finds the most recently created vocab10_*.json file but does NOT auto-execute.
     """
-    json_files = sorted(glob.glob(os.path.join(SAVE_DIR, "vocab10_*.json")), key=os.path.getmtime, reverse=True)
+    json_files = sorted(
+        glob.glob(os.path.join(SAVE_DIR, "vocab10_*.json")),
+        key=os.path.getmtime,
+        reverse=True
+    )
     return json_files[0] if json_files else None
 
 ###############################################################################
-# 2. Fetch Synonyms Using Llama
+# 2. Fetch Synonyms Using Llama (Exact 4 synonyms)
 ###############################################################################
 def fetch_synonyms(word):
     """
-    Calls Llama via Ollama to get 4 synonyms for the given word.
-    If no synonyms are found, returns "_____".
+    Calls llama3.2:8b via Ollama to get exactly 4 synonyms for the given word.
+
+    - Returns a list of exactly 4 synonyms (or fewer if the response doesn't have 4).
+    - If an error occurs, returns an empty list.
     """
     prompt = f"""
-Provide exactly **four** synonyms for the word '{word}'.  
-- Each synonym must be **one word** or a **short phrase** (no explanations).  
-- If no synonyms are found, return: **_____, _____, _____, _____**  
-- Output format:  
-  **synonym1, synonym2, synonym3, synonym4**
+Provide exactly four high-quality synonyms for the word '{word}'. 
+Ensure all synonyms match the part of speech of the original word. 
+Return only the synonyms as a comma-separated list.
+Example Output: synonym01, synonym02, synonym03, synonym04
     """
 
     payload = {"model": LLAMA_MODEL, "prompt": prompt, "stream": False}
@@ -52,15 +58,17 @@ Provide exactly **four** synonyms for the word '{word}'.
     try:
         response = requests.post(OLLAMA_URL, json=payload)
         response.raise_for_status()
-        synonyms = response.json().get("response", "").strip()
+        synonyms_raw = response.json().get("response", "").strip()
 
-        # Ensure we return exactly 4 synonyms, clean and split the output
-        synonym_list = [syn.strip() for syn in synonyms.split(",") if syn.strip()]
-        return synonym_list[:4] if len(synonym_list) == 4 else ["_____", "_____", "_____", "_____"]
+        # Clean up and split by commas
+        synonym_list = [syn.strip() for syn in synonyms_raw.split(",") if syn.strip()]
+
+        # Return only up to 4 synonyms (in case the model returns more)
+        return synonym_list[:4]
 
     except requests.exceptions.RequestException as e:
         print(f"Error contacting Llama API: {e}")
-        return ["_____", "_____", "_____", "_____"]
+        return []
 
 ###############################################################################
 # 3. Generate vocab20 JSON with Synonyms
@@ -69,7 +77,10 @@ def generate_vocab20(vocab10_path):
     """
     Reads vocab10_<filename>.json, fetches synonyms for each word using Llama,
     and saves the new JSON file as vocab20_<filename>.json.
+
+    Also saves a summary TXT file with synonyms for convenient viewing.
     """
+    # Derive new file names from the old file name
     base_name = os.path.basename(vocab10_path).replace("vocab10_", "").replace(".json", "")
     vocab20_json_path = os.path.join(SAVE_DIR, f"vocab20_{base_name}.json")
     vocab20_txt_path = os.path.join(SAVE_DIR, f"vocab20_{base_name}.txt")
@@ -78,11 +89,13 @@ def generate_vocab20(vocab10_path):
         print(f"Error: {vocab10_path} not found!")
         return None
 
+    # Load existing vocab10 JSON
     with open(vocab10_path, "r", encoding="utf-8") as file:
         vocab_list = json.load(file)
 
     updated_vocab_list = []
     
+    # For each word, fetch synonyms via Ollama
     for entry in vocab_list:
         word = entry["word"]
         quote = entry["quote"]
@@ -98,10 +111,10 @@ def generate_vocab20(vocab10_path):
     with open(vocab20_json_path, "w", encoding="utf-8") as file:
         json.dump(updated_vocab_list, file, indent=2, ensure_ascii=False)
 
-    # Save vocab20 TXT summary
+    # Optionally save a TXT summary
     try:
         with open(vocab20_txt_path, "w", encoding="utf-8") as tf:
-            tf.write(f"Vocabulary words and synonyms from {base_name}.txt\n")
+            tf.write(f"Vocabulary words and synonyms from {base_name}\n")
             tf.write("---------------------------------------------------\n")
             for i, entry in enumerate(updated_vocab_list, start=1):
                 tf.write(f"{i}. WORD: {entry['word']}\n")
@@ -136,16 +149,15 @@ def main():
             [latest_vocab10] + sorted(glob.glob(os.path.join(SAVE_DIR, "vocab10_*.json")))
         )
 
-    # Allow users to upload a different JSON file
+    # Or let users upload a JSON file
     uploaded_file = st.file_uploader("Or upload a `.json` file", type=["json"])
-
     if uploaded_file:
         selected_file = os.path.join(SAVE_DIR, f"uploaded_{uploaded_file.name}")
         with open(selected_file, "wb") as f:
             f.write(uploaded_file.getbuffer())
         st.success(f"Uploaded file: `{uploaded_file.name}` selected.")
 
-    # Ensure a file is selected before proceeding
+    # Ensure a file is actually selected
     if selected_file:
         with open(selected_file, "r", encoding="utf-8") as file:
             vocab_list = json.load(file)
@@ -156,15 +168,14 @@ def main():
             vocab_data = [{"Word": entry["word"], "Quote": entry["quote"]} for entry in vocab_list]
             st.table(vocab_data)
 
-            # "Find Synonyms" Button
+            # Button to fetch synonyms
             if st.button("Find Synonyms"):
                 with st.spinner("Fetching synonyms..."):
                     updated_vocab_list = generate_vocab20(selected_file)
 
+                # Display synonyms results
                 if updated_vocab_list:
                     st.success("Synonyms added and saved!")
-
-                    # Display synonyms below words
                     st.write("### Vocabulary Words with Synonyms")
                     for entry in updated_vocab_list:
                         st.markdown(f"**{entry['word']}**")
