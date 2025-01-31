@@ -26,7 +26,7 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 ###############################################################################
 def get_latest_vocab10():
     """
-    Finds the most recently created vocab10_*.json file.
+    Finds the most recently created vocab10_*.json file but does NOT auto-execute.
     """
     json_files = sorted(glob.glob(os.path.join(SAVE_DIR, "vocab10_*.json")), key=os.path.getmtime, reverse=True)
     return json_files[0] if json_files else None
@@ -123,46 +123,47 @@ def generate_vocab20(vocab10_path):
 def main():
     st.title("Generate Synonyms for Vocabulary Words")
 
-    # Find the latest vocab10 file
+    # Load the latest vocab10 file but DO NOT process automatically
     latest_vocab10 = get_latest_vocab10()
+    selected_file = None
+
+    # File selection dropdown
+    st.write("### Select a Vocabulary JSON File")
     if latest_vocab10:
-        st.success(f"Using latest file: {os.path.basename(latest_vocab10)}")
-    else:
-        st.warning("No existing vocabulary file found. Upload a new one below.")
+        st.success(f"Latest file detected: `{os.path.basename(latest_vocab10)}`")
+        selected_file = st.selectbox(
+            "Choose a JSON file to process:",
+            [latest_vocab10] + sorted(glob.glob(os.path.join(SAVE_DIR, "vocab10_*.json")))
+        )
 
-    uploaded_file = st.file_uploader("Upload a .txt file to fetch synonyms", type=["txt"])
+    # Allow users to upload a different JSON file
+    uploaded_file = st.file_uploader("Or upload a `.json` file", type=["json"])
 
-    vocab_list = None
-
-    # If file is uploaded, process it
     if uploaded_file:
-        text_content = uploaded_file.read().decode("utf-8")
-        st.success("File uploaded successfully!")
+        selected_file = os.path.join(SAVE_DIR, f"uploaded_{uploaded_file.name}")
+        with open(selected_file, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.success(f"Uploaded file: `{uploaded_file.name}` selected.")
 
-        # Generate vocab10 if user uploads a new file
-        from vocab_find import generate_vocabulary_workbook  # Import from vocab_find.py
-        vocab_list = generate_vocabulary_workbook(text_content, uploaded_file.name)
-        latest_vocab10 = os.path.join(SAVE_DIR, f"vocab10_{uploaded_file.name}.json")
-
-    # Display table if vocab10 exists
-    if latest_vocab10 and os.path.exists(latest_vocab10):
-        with open(latest_vocab10, "r", encoding="utf-8") as file:
+    # Ensure a file is selected before proceeding
+    if selected_file:
+        with open(selected_file, "r", encoding="utf-8") as file:
             vocab_list = json.load(file)
 
         if vocab_list:
+            # Display vocabulary words and quotes
             st.write("### Vocabulary Words & Quotes")
-            # Show words in a table
             vocab_data = [{"Word": entry["word"], "Quote": entry["quote"]} for entry in vocab_list]
             st.table(vocab_data)
 
             # "Find Synonyms" Button
             if st.button("Find Synonyms"):
                 with st.spinner("Fetching synonyms..."):
-                    updated_vocab_list = generate_vocab20(latest_vocab10)
+                    updated_vocab_list = generate_vocab20(selected_file)
 
                 if updated_vocab_list:
                     st.success("Synonyms added and saved!")
-                    
+
                     # Display synonyms below words
                     st.write("### Vocabulary Words with Synonyms")
                     for entry in updated_vocab_list:
