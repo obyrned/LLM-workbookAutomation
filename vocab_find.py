@@ -205,5 +205,11 @@ def main():
         else:
             st.error("No valid vocabulary words found.")
 
+    # "Next" button is always visible
+    if st.button("Next →"):
+        os.system("streamlit run vocab_synonym.py")  # Move to synonym extraction
+        st.stop()
+
 if __name__ == "__main__":
     main()
+
