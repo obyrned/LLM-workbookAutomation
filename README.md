@@ -1,81 +1,87 @@
+# Workbook Generator
 
-Workbook Generator
+The Comprehension Workbook Generator is a web application designed to transform novel text into educational materials. Using OpenAI's GPT-4o and the DeepSeek-R1:8B model, it generates comprehension questions and vocabulary exercises, making it easy to create workbooks for lessons.
 
-The Comprehension Workbook Generator is a web application designed to transform novel text into educational materials. Using the DeepSeek-R1:8B model, it generates comprehension questions and vocabulary exercises, making it easy to create workbooks for lessons.
+## 📌 Requirements
 
-Requirements
+### **1️⃣ Install Required Software**
+- **Python 3.8+**: Ensure you have Python installed.
+- **Streamlit**: Used for the interactive web-based interface.
+- **python-dotenv**: Loads API keys from an environment file.
+- **OpenAI API Key**: Required for vocabulary extraction.
 
-- Ollama: Ensure Ollama is installed and running on port 11434.
-- DeepSeek-R1:8B: The model is required for generating questions and vocabulary suggestions.
-- Streamlit: Install Streamlit to run the application.
+### **2️⃣ Install Dependencies**
+Run the following command to install all required dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-Features
+### **3️⃣ OpenAI API Key (Required)**
+This script requires an **OpenAI API key** for processing vocabulary.  
+If you don’t have one, create an API key at **[OpenAI](https://platform.openai.com/signup/)**.
 
-1. Comprehension Questions (tfmc_workbook.py)
-- Automatic Question Generation:
+#### **➤ How to Set Up Your API Key**
+1. **Create a `.env` file** in the project directory.
+2. **Add your OpenAI API key** inside `.env` (replace `sk-xxxx` with your key):
+```bash
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### **4️⃣ (Optional) Ollama + DeepSeek Setup**
+The script **previously** supported **DeepSeek via Ollama**, but this is currently **disabled**.  
+If you want to use it, ensure **Ollama is installed and running** on port **11434**.
+
+## 🚀 **How to Run**
+1. **Start the Streamlit app**:
+```bash
+streamlit run vocab_workbook.py
+```
+2. **Upload a `.txt` file**, and the app will extract vocabulary words.
+
+## 📂 **Output Files**
+- The extracted words will be saved in **`data/`** as:
+  - **JSON**: `vocab10_<filename>.json`
+  - **TXT**: `vocab10_<filename>.txt`
+
+## 🔗 **Additional Notes**
+- OpenAI API logs can be checked at [OpenAI API Logs](https://platform.openai.com/account/api-logs).
+- If you encounter API errors, ensure your **API key is set correctly** in `.env`.
+
+## **Features**
+
+### **1. Comprehension Questions (`tfmc_workbook.py`)**
+- **Automatic Question Generation**:
   - Creates exactly 5 multiple-choice questions (with 4 answer options each).
   - Creates exactly 5 true/false questions.
-- Text Chunking: Processes lesson-sized chunks of novel text (~1300 lines) for meaningful question generation.
-- Robust Parsing: Ensures valid JSON output from the model.
-- Output Formats:
+- **Text Chunking**: Processes lesson-sized chunks of novel text (~1300 lines) for meaningful question generation.
+- **Robust Parsing**: Ensures valid JSON output from the model.
+- **Output Formats**:
   - Saves questions as JSON and text files.
   - Provides a preview within the app.
 
-2. Vocabulary Workbook (vocab_workbook.py)
-- Vocabulary Extraction:
+### **2. Vocabulary Workbook (`vocab_workbook.py`)**
+- **Vocabulary Extraction**:
   - Identifies and highlights useful vocabulary based on uploaded text.
   - Suggests key terms for students to focus on.
-- Customizable: Easily adjust parameters to suit different text types or lesson goals.
+- **Customizable**: Easily adjust parameters to suit different text types or lesson goals.
 
-Installation
+## **Example Output**
 
-1. Clone the repository:
-   git clone https://github.com/obyrned/comprehension-workbook-generator.git
-   cd comprehension-workbook-generator
-
-2. Install dependencies:
-   pip install -r requirements.txt
-
-3. Run the application:
-   streamlit run app.py
-
-4. Open your browser and navigate to:
-   http://localhost:8501
-
-Usage
-
-Generating Questions
-1. Upload a .txt file containing a lesson-sized chunk of text (~1300 lines).
-2. The app will generate:
-   - 5 multiple-choice questions.
-   - 5 true/false questions.
-3. Preview the questions in the app.
-4. Download the results as JSON and text files (saved to the data directory).
-
-Extracting Vocabulary
-1. Use vocab_workbook.py to identify useful vocabulary terms.
-2. Run the script on your text file to generate vocabulary lists for student practice.
-
-Notes
-
-- Ensure Ollama is running on port 11434 with the DeepSeek-R1:8B model loaded.
-- For best results, use text with rich content to generate meaningful questions and vocabulary.
-
-Example Output
-
-Comprehension Questions
-Multiple-Choice
+### **Comprehension Questions**
+#### Multiple-Choice
 1. What does the protagonist do?
    - A: Runs away
    - B: Hides
    - C: Fights bravely
-   - D: Asks for help
-   Correct Answer: C
+   - D: Asks for help  
+   **Correct Answer**: C
 
-True/False
-1. The protagonist travels alone.
-   Correct Answer: False
+#### True/False
+1. The protagonist travels alone.  
+   **Correct Answer**: False
 
-Vocabulary Example
-- Words: protagonist, bravery, adventure
-- Definitions: Derived from the text for clear context-based explanations.
+### **Vocabulary Example**
+- **Words**: protagonist, bravery, adventure
+- **Definitions**: Derived from the text for clear context-based explanations.
+
+---
